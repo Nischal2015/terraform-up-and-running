@@ -17,7 +17,7 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-west-2"
+  region = "us-east-1"
 }
 
 resource "aws_security_group" "instance" {
@@ -41,11 +41,15 @@ resource "aws_security_group" "instance" {
 resource "aws_launch_template" "example" {
   name = "aws-example-launch-template"
 
-  image_id               = "ami-0c65adc9a5c1b5d7c"
+  image_id               = "ami-0261755bbcb8c4a84"
   instance_type          = "t2.micro"
   vpc_security_group_ids = [aws_security_group.instance.id]
 
-  user_data = filebase64("${path.module}/example.sh")
+  user_data = base64encode(templatefile("example.sh", {
+    server_port = var.server_port
+    db_address  = data.terraform_remote_state.db.outputs.address
+    db_port     = data.terraform_remote_state.db.outputs.port
+  }))
   lifecycle {
     create_before_destroy = true
   }
@@ -75,7 +79,6 @@ resource "aws_autoscaling_group" "example-asg" {
 
 data "aws_vpc" "default" {
   default = true
-
 }
 
 data "aws_subnets" "default" {
@@ -156,5 +159,15 @@ resource "aws_lb_listener_rule" "asg" {
   action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.asg-tg.arn
+  }
+}
+
+data "terraform_remote_state" "db" {
+  backend = "s3"
+
+  config = {
+    bucket = "terraform-state-bucket-nischal"
+    key    = "stage/data-stores/mysql/terraform.tfstate"
+    region = "us-west-2"
   }
 }
