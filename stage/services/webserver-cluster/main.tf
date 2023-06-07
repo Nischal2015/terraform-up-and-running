@@ -1,4 +1,13 @@
 terraform {
+  backend "s3" {
+    bucket = "terraform-state-bucket-nischal"
+    key    = "global/s3/terraform.tfstate"
+    region = "us-west-2"
+
+    dynamodb_table = "terraform-up-and-running-locks"
+    encrypt        = true
+  }
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -148,9 +157,4 @@ resource "aws_lb_listener_rule" "asg" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.asg-tg.arn
   }
-}
-
-output "alb_dns_name" {
-  value       = aws_lb.example.dns_name
-  description = "The domain name of load balancer"
 }
