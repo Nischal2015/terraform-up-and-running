@@ -15,19 +15,16 @@ terraform {
     }
   }
 }
-
 provider "aws" {
-  region = "us-west-2"
+  region = "us-east-1"
 }
 
-resource "aws_db_instance" "example" {
-  identifier_prefix   = "terraform-up-and-running"
-  engine              = "mysql"
-  allocated_storage   = 10
-  instance_class      = "db.t2.micro"
-  skip_final_snapshot = true
-  db_name             = "example_database"
+module "mysql" {
+  source = "../../../modules/data-stores/mysql"
 
-  username = var.db_username
-  password = var.db_password
+  ami_id      = "ami-0261755bbcb8c4a84"
+  db_name     = var.db_name
+  db_username = var.db_username
+  db_password = var.db_password
+  env         = "stage"
 }
