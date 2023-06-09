@@ -19,7 +19,7 @@ resource "aws_security_group" "instance" {
 resource "aws_launch_template" "example" {
   name = "aws-example-launch-template"
 
-  image_id               = var.ami_id
+  image_id               = var.ami
   instance_type          = var.instance_type
   vpc_security_group_ids = [aws_security_group.instance.id]
 
@@ -27,6 +27,7 @@ resource "aws_launch_template" "example" {
     server_port = var.server_port
     db_address  = data.terraform_remote_state.db.outputs.address
     db_port     = data.terraform_remote_state.db.outputs.port
+    server_text = var.server_text
   }))
   lifecycle {
     create_before_destroy = true
@@ -34,7 +35,7 @@ resource "aws_launch_template" "example" {
 }
 
 resource "aws_autoscaling_group" "example-asg" {
-  name = "example-asg"
+  name = var.cluster_name
 
   launch_template {
     id      = aws_launch_template.example.id
@@ -48,10 +49,33 @@ resource "aws_autoscaling_group" "example-asg" {
   min_size = var.min_size
   max_size = var.max_size
 
+  # Use instance refresh to roll out changes to the ASG
+  instance_refresh {
+    strategy = "Rolling"
+
+    preferences {
+      min_healthy_percentage = 50
+    }
+  }
+
   tag {
     key                 = "Name"
     value               = var.cluster_name
     propagate_at_launch = true
+  }
+
+  dynamic "tag" {
+    for_each = {
+      for key, value in var.custom_tags :
+      key => upper(value)
+      if key != "Name"
+    }
+
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
+    }
   }
 }
 
@@ -118,6 +142,8 @@ resource "aws_lb_target_group" "asg-tg" {
   port     = var.server_port
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.default.id
+
+  deregistration_delay = 20
 
   health_check {
     path                = "/"
