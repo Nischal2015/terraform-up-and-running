@@ -22,7 +22,7 @@ provider "aws" {
 module "mysql" {
   source = "../../../../modules/data-stores/mysql"
 
-  ami_id      = "ami-0261755bbcb8c4a84"
+  ami         = "ami-0261755bbcb8c4a84"
   db_name     = var.db_name
   db_username = var.db_username
   db_password = var.db_password

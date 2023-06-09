@@ -27,10 +27,15 @@ module "webserver_cluster" {
   db_remote_state_bucket = "terraform-state-bucket-nischal"
   db_remote_state_key    = "prod/data-stores/mysql/terraform.tfstate"
 
-  ami_id      = "ami-0c65adc9a5c1b5d7c"
-  instance_type = "t3.micro"
+  ami           = "ami-0261755bbcb8c4a84"
+  instance_type = "t2.micro"
   min_size      = 2
   max_size      = 4
+
+  custom_tags = {
+    Owner     = "team-nischal"
+    ManagedBy = "Nischal"
+  }
 }
 
 resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
