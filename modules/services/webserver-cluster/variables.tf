@@ -4,11 +4,6 @@ variable "server_port" {
   default     = 80
 }
 
-variable "ami_id" {
-  description = "The id of AMI used for launch template"
-  type        = string
-}
-
 variable "cluster_name" {
   description = "The name to use for all the cluster resources"
   type        = string
@@ -35,4 +30,21 @@ variable "min_size" {
 
 variable "max_size" {
   description = "The maximum number of EC2 instances in the ASG"
+}
+
+variable "custom_tags" {
+  description = "Custom tags to be used in ASG"
+  type        = map(string)
+}
+
+variable "ami" {
+  description = "The AMI to run in the cluster"
+  type        = string
+  default     = "ami-0261755bbcb8c4a84"
+}
+
+variable "server_text" {
+  description = "The text the web server should return"
+  type        = string
+  default     = "Nischal Shakya"
 }
